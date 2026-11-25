@@ -53,33 +53,6 @@
       0 24px 60px rgba(0, 0, 0, 0.6);
     padding: 26px 24px 24px;
   }
-  h1 {
-    margin: 0 0 8px;
-    font-family: "Orbitron", "Oswald", sans-serif;
-    font-weight: 700;
-    font-size: 1.65rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    text-align: center;
-    background: linear-gradient(90deg, var(--neon) 0%, #b9f6ff 45%, var(--pink) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    filter: drop-shadow(0 0 10px rgba(62, 242, 200, 0.35));
-  }
-  h1 .dot {
-    letter-spacing: 0.1em;
-  }
-  .sub {
-    margin: 0 0 18px;
-    color: var(--muted);
-    font-size: 0.82rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    line-height: 1.6;
-    text-align: center;
-  }
   .row { display: flex; gap: 10px; align-items: center; }
   .controls {
     margin-top: 14px;
@@ -242,7 +215,7 @@
   }
   .display {
     min-width: 0;
-    margin-top: 14px;
+    margin-top: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -358,7 +331,6 @@
   @media (max-width: 420px) {
     .display { flex-direction: column; text-align: center; gap: 14px; }
     .bpm { align-items: center; }
-    h1 { font-size: 1.35rem; letter-spacing: 0.16em; }
     .bpm .value { font-size: 3.1rem; }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -369,9 +341,6 @@
 </head>
 <body>
   <div class="card">
-    <h1>MIDI <span class="dot">Tick</span></h1>
-    <p class="sub">Receive MIDI clock and play a tick on each beat.</p>
-
     <div class="display">
       <div class="bpm">
         <span class="label">Tempo</span>
