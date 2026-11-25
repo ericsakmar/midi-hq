@@ -54,6 +54,79 @@
     padding: 26px 24px 24px;
   }
   .row { display: flex; gap: 10px; align-items: center; }
+  .mode-toggle {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: #100c1a;
+    border: 1px solid rgba(62, 242, 200, 0.22);
+    border-radius: 10px;
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-family: "Orbitron", "Oswald", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+  }
+  .mode-btn:hover { color: var(--cream); }
+  .mode-btn.active {
+    color: var(--neon);
+    background: #171226;
+    border-color: rgba(62, 242, 200, 0.45);
+    box-shadow: 0 0 12px rgba(62, 242, 200, 0.18);
+    text-shadow: 0 0 8px rgba(62, 242, 200, 0.5);
+  }
+  .tempo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    background: #100c1a;
+    border: 1px solid rgba(62, 242, 200, 0.2);
+    border-radius: 10px;
+  }
+  .tempo-row label {
+    font-family: "Orbitron", "Oswald", sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .tempo-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 1rem;
+    color: var(--neon);
+    background: #0b0812;
+    border: 1px solid rgba(62, 242, 200, 0.25);
+    border-radius: 6px;
+    outline: none;
+    text-align: right;
+    -moz-appearance: textfield;
+  }
+  .tempo-row input::-webkit-outer-spin-button,
+  .tempo-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .tempo-row input:focus { border-color: var(--neon); box-shadow: 0 0 0 2px rgba(62, 242, 200, 0.3); }
+  .tempo-row .tempo-unit {
+    flex-shrink: 0;
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: #7f789a;
+  }
   .controls {
     margin-top: 14px;
     display: flex;
@@ -378,6 +451,15 @@
     </div>
 
     <div class="controls">
+      <div class="mode-toggle" role="group" aria-label="MIDI mode">
+        <button type="button" id="modeReceiveBtn" class="mode-btn active" aria-pressed="true">Receive</button>
+        <button type="button" id="modeTransmitBtn" class="mode-btn" aria-pressed="false">Transmit</button>
+      </div>
+      <div class="tempo-row" id="tempoRow" style="display: none;">
+        <label for="tempoInput">Tempo</label>
+        <input type="number" id="tempoInput" min="20" max="300" step="1" value="120">
+        <span class="tempo-unit">BPM</span>
+      </div>
       <div class="row">
         <button id="enableBtn" class="primary">Enable MIDI</button>
       </div>
@@ -401,6 +483,10 @@
   const deviceSelect = document.getElementById("deviceSelect");
   const bpmValue = document.getElementById("bpmValue");
   const beatLamp = document.getElementById("beatLamp");
+  const modeReceiveBtn = document.getElementById("modeReceiveBtn");
+  const modeTransmitBtn = document.getElementById("modeTransmitBtn");
+  const tempoRow = document.getElementById("tempoRow");
+  const tempoInput = document.getElementById("tempoInput");
   const muteBtn = document.getElementById("muteBtn");
   const volumeSlider = document.getElementById("volumeSlider");
   const volValue = document.getElementById("volValue");
@@ -416,6 +502,15 @@
   } catch (e) { /* storage unavailable */ }
   let midiAccess = null;
   let selectedInput = null;
+  let selectedOutput = null;
+  let mode = "receive"; // "receive" | "transmit"
+  let transmitBpm = 120;
+  try {
+    const storedBpm = parseFloat(localStorage.getItem("midiTickBpm"));
+    if (!Number.isNaN(storedBpm)) transmitBpm = Math.min(300, Math.max(20, storedBpm));
+  } catch (e) { /* storage unavailable */ }
+  let transmitTimer = null;
+  let transmitTickCount = 0;
   let ticks = 0;
   let lastBeatTime = null;
   let lastTickTime = null;
@@ -503,19 +598,21 @@
   // ---------- Beat handling ----------
   function onBeat() {
     const now = performance.now();
-    if (lastBeatTime !== null) {
-      const interval = now - lastBeatTime;
-      if (interval >= MIN_BEAT_INTERVAL_MS) {
-        intervalSamples.push(interval);
-        if (intervalSamples.length > BPM_SAMPLES) intervalSamples.shift();
-        const avg = intervalSamples.reduce((a, b) => a + b, 0) / intervalSamples.length;
-        const bpm = 60000 / avg;
-        bpmValue.textContent = bpm.toFixed(1);
+    if (mode === "receive") {
+      if (lastBeatTime !== null) {
+        const interval = now - lastBeatTime;
+        if (interval >= MIN_BEAT_INTERVAL_MS) {
+          intervalSamples.push(interval);
+          if (intervalSamples.length > BPM_SAMPLES) intervalSamples.shift();
+          const avg = intervalSamples.reduce((a, b) => a + b, 0) / intervalSamples.length;
+          const bpm = 60000 / avg;
+          bpmValue.textContent = bpm.toFixed(1);
+        }
       }
+      lastBeatTime = now;
+      lastTickTime = now;
+      ticks = 0;
     }
-    lastBeatTime = now;
-    lastTickTime = now;
-    ticks = 0;
 
     playTick();
     flashLamp();
@@ -525,6 +622,64 @@
     beatLamp.classList.add("hit");
     if (lampTimeout) clearTimeout(lampTimeout);
     lampTimeout = setTimeout(() => beatLamp.classList.remove("hit"), 110);
+  }
+
+  // ---------- Transmit ----------
+  function startTransmit() {
+    stopTransmit();
+    if (mode !== "transmit" || !midiAccess || !selectedOutput) return;
+    const interval = 60000 / transmitBpm / TICKS_PER_QUARTER;
+    let nextTime = performance.now() + interval;
+    const tick = () => {
+      try {
+        selectedOutput.send([0xF8]);
+      } catch (e) {
+        stopTransmit();
+        enableBtn.textContent = "Output lost — retry";
+        return;
+      }
+      transmitTickCount++;
+      if (transmitTickCount >= TICKS_PER_QUARTER) {
+        transmitTickCount = 0;
+        onBeat();
+      }
+      nextTime += interval;
+      // Skip ahead if we've fallen behind (tab throttling, etc.)
+      if (nextTime < performance.now()) nextTime = performance.now() + interval;
+      transmitTimer = setTimeout(tick, Math.max(0, nextTime - performance.now()));
+    };
+    transmitTimer = setTimeout(tick, interval);
+  }
+
+  function stopTransmit() {
+    if (transmitTimer) clearTimeout(transmitTimer);
+    transmitTimer = null;
+    transmitTickCount = 0;
+  }
+
+  function setMode(next) {
+    if (next === mode) return;
+    mode = next;
+    modeReceiveBtn.classList.toggle("active", mode === "receive");
+    modeReceiveBtn.setAttribute("aria-pressed", mode === "receive" ? "true" : "false");
+    modeTransmitBtn.classList.toggle("active", mode === "transmit");
+    modeTransmitBtn.setAttribute("aria-pressed", mode === "transmit" ? "true" : "false");
+    tempoRow.style.display = mode === "transmit" ? "flex" : "none";
+    stopTransmit();
+    if (selectedInput) {
+      selectedInput.onmidimessage = null;
+      selectedInput = null;
+    }
+    selectedOutput = null;
+    if (mode === "transmit") {
+      bpmValue.textContent = transmitBpm.toFixed(1);
+    } else {
+      bpmValue.textContent = "--";
+      intervalSamples = [];
+      lastBeatTime = null;
+      lastTickTime = null;
+    }
+    if (midiAccess) populateDevices();
   }
 
   // ---------- MIDI ----------
@@ -544,36 +699,51 @@
   function populateDevices() {
     if (!midiAccess) return;
     deviceSelect.innerHTML = "";
-    const inputs = [...midiAccess.inputs.values()];
-    if (inputs.length === 0) {
+    const isReceive = mode === "receive";
+    const devices = [...(isReceive ? midiAccess.inputs.values() : midiAccess.outputs.values())];
+    if (devices.length === 0) {
       deviceRow.style.display = "none";
-      enableBtn.textContent = "No MIDI inputs — retry";
+      enableBtn.textContent = isReceive ? "No MIDI inputs — retry" : "No MIDI outputs — retry";
+      if (!isReceive) stopTransmit();
       return;
     }
     deviceRow.style.display = "flex";
-    for (const input of inputs) {
+    deviceSelect.setAttribute("aria-label", isReceive ? "MIDI input device" : "MIDI output device");
+    for (const device of devices) {
       const opt = document.createElement("option");
-      opt.value = input.id;
-      opt.textContent = input.name || ("Input " + input.id);
+      opt.value = device.id;
+      opt.textContent = device.name || (isReceive ? "Input " + device.id : "Output " + device.id);
       deviceSelect.appendChild(opt);
     }
     // Preserve selection if still present.
-    if (selectedInput && [...midiAccess.inputs.values()].some(i => i.id === selectedInput.id)) {
-      deviceSelect.value = selectedInput.id;
+    const current = isReceive ? selectedInput : selectedOutput;
+    if (current && devices.some(d => d.id === current.id)) {
+      deviceSelect.value = current.id;
     }
-    bindSelectedInput();
+    bindSelectedDevice();
   }
 
-  function bindSelectedInput() {
-    if (selectedInput) {
-      selectedInput.onmidimessage = null;
-    }
-    const id = deviceSelect.value;
-    const input = midiAccess && midiAccess.inputs.get(id);
-    selectedInput = input || null;
-    if (selectedInput) {
-      selectedInput.onmidimessage = handleMessage;
-      enableBtn.textContent = "Re-scan devices";
+  function bindSelectedDevice() {
+    if (mode === "receive") {
+      if (selectedInput) {
+        selectedInput.onmidimessage = null;
+      }
+      const id = deviceSelect.value;
+      const input = midiAccess && midiAccess.inputs.get(id);
+      selectedInput = input || null;
+      if (selectedInput) {
+        selectedInput.onmidimessage = handleMessage;
+        enableBtn.textContent = "Re-scan devices";
+      }
+    } else {
+      stopTransmit();
+      const id = deviceSelect.value;
+      const output = midiAccess && midiAccess.outputs.get(id);
+      selectedOutput = output || null;
+      if (selectedOutput) {
+        enableBtn.textContent = "Re-scan devices";
+        startTransmit();
+      }
     }
   }
 
@@ -602,14 +772,19 @@
 
     // Re-populate when devices come and go.
     midiAccess.onstatechange = () => {
-      const prevId = selectedInput ? selectedInput.id : null;
+      const isReceive = mode === "receive";
+      const prevId = isReceive ? (selectedInput && selectedInput.id) : (selectedOutput && selectedOutput.id);
       populateDevices();
-      // If the previously selected input vanished, pick the first available.
-      if (!selectedInput || (prevId && !midiAccess.inputs.get(prevId))) {
-        const first = midiAccess.inputs.values().next().value;
+      // If the previously selected device vanished, pick the first available.
+      const current = isReceive ? selectedInput : selectedOutput;
+      const gone = isReceive
+        ? (!selectedInput || (prevId && !midiAccess.inputs.get(prevId)))
+        : (!selectedOutput || (prevId && !midiAccess.outputs.get(prevId)));
+      if (!current || gone) {
+        const first = (isReceive ? midiAccess.inputs.values() : midiAccess.outputs.values()).next().value;
         if (first) {
           deviceSelect.value = first.id;
-          bindSelectedInput();
+          bindSelectedDevice();
         }
       }
     };
@@ -628,12 +803,27 @@
   });
   updateVolumeUI();
 
-  enableBtn.addEventListener("click", enable);
-  deviceSelect.addEventListener("change", bindSelectedInput);
+  modeReceiveBtn.addEventListener("click", () => setMode("receive"));
+  modeTransmitBtn.addEventListener("click", () => setMode("transmit"));
+  tempoInput.addEventListener("input", () => {
+    const v = parseFloat(tempoInput.value);
+    if (Number.isNaN(v)) return;
+    transmitBpm = Math.min(300, Math.max(20, v));
+    bpmValue.textContent = transmitBpm.toFixed(1);
+    try { localStorage.setItem("midiTickBpm", String(transmitBpm)); } catch (e) { /* storage unavailable */ }
+    if (mode === "transmit") startTransmit();
+  });
+  tempoInput.addEventListener("blur", () => {
+    tempoInput.value = String(transmitBpm);
+  });
+  try { tempoInput.value = String(transmitBpm); } catch (e) { /* ignore */ }
 
-  // Keep the clock/lamp from drifting after long idle periods.
+  enableBtn.addEventListener("click", enable);
+  deviceSelect.addEventListener("change", bindSelectedDevice);
+
+  // Keep the clock/lamp from drifting after long idle periods (receive mode).
   setInterval(() => {
-    if (lastTickTime && performance.now() - lastTickTime > 5000) {
+    if (mode === "receive" && lastTickTime && performance.now() - lastTickTime > 5000) {
       // No clock for 5s — reset the tempo window so it doesn't go stale.
       intervalSamples = [];
       lastBeatTime = null;
