@@ -6,18 +6,18 @@
 <title>MIDI Tick</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Oswald:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Narrow:wght@500;600;700&family=Audiowide&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0b0a14;
-    --panel: #14101f;
-    --panel-deep: #0e0b18;
-    --ink: #060510;
-    --neon: #3ef2c8;
-    --neon-dim: #1f8a70;
-    --pink: #ff5fa2;
-    --cream: #ece7f7;
-    --muted: #8a829e;
+    --tolex: #111111;
+    --panel: #2f2e30;
+    --stripe: #b5543e;
+    --legend: #ebe6da;
+    --legend-dim: #a9a49a;
+    --ink: #050505;
+    --led: #ff3d2e;
+    --led-glow: rgba(255, 61, 46, 0.55);
+    --glass: #0c0606;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -28,446 +28,678 @@
     align-items: center;
     justify-content: center;
     background:
-      radial-gradient(1000px 600px at 50% 8%, rgba(255, 95, 162, 0.10) 0%, transparent 55%),
-      radial-gradient(900px 650px at 50% 115%, rgba(62, 242, 200, 0.10) 0%, transparent 60%),
-      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 4px),
-      linear-gradient(180deg, #100d1d 0%, #080710 100%);
-    color: var(--cream);
-    font-family: "Oswald", system-ui, -apple-system, sans-serif;
-    padding: 28px 20px;
+      radial-gradient(1000px 700px at 50% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 60%),
+      linear-gradient(180deg, #1c1a1a 0%, #0d0c0c 100%);
+    color: var(--legend);
+    font-family: "Archivo Narrow", "Helvetica Neue", Arial, sans-serif;
+    padding: 28px 16px;
     overflow-x: hidden;
   }
+
+  /* ---------- Case + faceplate ---------- */
   .card {
     position: relative;
     width: 100%;
-    max-width: 480px;
+    max-width: 520px;
     min-width: 0;
-    background:
-      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 4px),
-      linear-gradient(180deg, #171226 0%, #120e1e 100%);
-    border: 1px solid rgba(62, 242, 200, 0.28);
+    padding: 14px;
     border-radius: 16px;
+    background:
+      radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.025) 0 1px, transparent 1.5px) 0 0 / 5px 5px,
+      radial-gradient(circle at 70% 60%, rgba(0, 0, 0, 0.5) 0 1px, transparent 1.5px) 0 0 / 4px 4px,
+      linear-gradient(180deg, #1b1b1b 0%, var(--tolex) 100%);
     box-shadow:
-      0 0 0 1px rgba(6, 5, 16, 0.8),
-      0 0 34px rgba(62, 242, 200, 0.10),
-      0 24px 60px rgba(0, 0, 0, 0.6);
-    padding: 26px 24px 24px;
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 -2px 6px rgba(0, 0, 0, 0.8),
+      0 28px 60px rgba(0, 0, 0, 0.7);
   }
-  .row { display: flex; gap: 10px; align-items: center; }
-  .mode-toggle {
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    background: #100c1a;
-    border: 1px solid rgba(62, 242, 200, 0.22);
-    border-radius: 10px;
+  .panel {
+    position: relative;
+    padding: 30px 22px 16px;
+    background: var(--panel);
+    border-radius: 6px;
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+      inset 0 0 40px rgba(0, 0, 0, 0.35),
+      0 0 0 2px #050505;
   }
-  .mode-btn {
-    flex: 1;
-    padding: 8px 10px;
-    font-family: "Orbitron", "Oswald", sans-serif;
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
+  .screw {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #f2f2f2, #9a9a9a 55%, #555 100%);
+    border: 1px solid #1a1a1a;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    transform: rotate(var(--r, 20deg));
+    z-index: 2;
+  }
+  .screw::before, .screw::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: 50%;
+    background: #3a3a3a;
+    border-radius: 1px;
+  }
+  .screw::before { width: 7px; height: 1.6px; transform: translate(-50%, -50%); }
+  .screw::after  { width: 1.6px; height: 7px; transform: translate(-50%, -50%); }
+  .screw.tl { top: 9px; left: 9px; --r: 15deg; }
+  .screw.tr { top: 9px; right: 9px; --r: -30deg; }
+  .screw.bl { bottom: 9px; left: 9px; --r: 40deg; }
+  .screw.br { bottom: 9px; right: 9px; --r: -10deg; }
+
+  /* ---------- Pinstriped sections ---------- */
+  .sec {
+    position: relative;
+    border: 1.5px solid var(--stripe);
+    border-radius: 14px;
+    padding: 20px 16px 14px;
+    min-width: 0;
+  }
+  .sec + .sec, .sec-row + .sec, .sec + .sec-row, .sec-row + .sec-row { margin-top: 12px; }
+  .sec-label {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    padding: 0 8px;
+    background: var(--panel);
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--muted);
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+    color: var(--legend);
+    white-space: nowrap;
   }
-  .mode-btn:hover { color: var(--cream); }
-  .mode-btn.active {
-    color: var(--neon);
-    background: #171226;
-    border-color: rgba(62, 242, 200, 0.45);
-    box-shadow: 0 0 12px rgba(62, 242, 200, 0.18);
-    text-shadow: 0 0 8px rgba(62, 242, 200, 0.5);
+  .vlabel {
+    position: absolute;
+    right: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    font-weight: 700;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    color: var(--legend);
+    line-height: 1;
+  }
+  .sec.has-vlabel { padding-right: 30px; }
+  .sec-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .sec-row > .sec { margin-top: 0; }
+  .legend {
+    font-weight: 700;
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--legend);
+    line-height: 1.1;
+    text-align: center;
+  }
+
+  /* ---------- Readout + downbeat ---------- */
+  .display {
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .side {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
   }
   .tempo-row {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
-    padding: 9px 12px;
-    background: #100c1a;
-    border: 1px solid rgba(62, 242, 200, 0.2);
-    border-radius: 10px;
+    gap: 4px;
+    transition: opacity 0.15s ease, filter 0.15s ease;
   }
-  .tempo-row label {
-    font-family: "Orbitron", "Oswald", sans-serif;
-    font-size: 0.68rem;
-    font-weight: 500;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--muted);
-    flex-shrink: 0;
-  }
-  .tempo-row input {
+  .tempo-row.disabled { opacity: 0.35; filter: saturate(0.4); }
+  .tempo-row.disabled .knob { cursor: not-allowed; }
+  .tempo-row .scale { --step: 38.5714deg; }
+  .mode-only-tx { display: none; }
+  body[data-mode="transmit"] .mode-only-rx { display: none; }
+  body[data-mode="transmit"] .mode-only-tx { display: inline; }
+  .readout {
     flex: 1;
     min-width: 0;
-    padding: 6px 8px;
-    font-family: "Share Tech Mono", ui-monospace, monospace;
-    font-size: 1rem;
-    color: var(--neon);
-    background: #0b0812;
-    border: 1px solid rgba(62, 242, 200, 0.25);
-    border-radius: 6px;
-    outline: none;
-    text-align: right;
-    -moz-appearance: textfield;
-  }
-  .tempo-row input::-webkit-outer-spin-button,
-  .tempo-row input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .tempo-row input:focus { border-color: var(--neon); box-shadow: 0 0 0 2px rgba(62, 242, 200, 0.3); }
-  .tempo-row .tempo-unit {
-    flex-shrink: 0;
-    font-family: "Share Tech Mono", ui-monospace, monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-    color: #7f789a;
-  }
-  .controls {
-    margin-top: 14px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-  }
-  .controls .row { margin: 0; }
-  .controls .device-row { margin-top: 0; }
-  .device-row {
-    margin-top: 8px;
-    opacity: 0.7;
-    transition: opacity 0.15s ease;
-  }
-  .device-row:hover, .device-row:focus-within { opacity: 1; }
-  .device-row select {
-    padding: 7px 10px;
-    font-size: 0.78rem;
-    color: #b6b0c9;
-    background: #100c1a;
-    border-color: rgba(62, 242, 200, 0.22);
-    border-radius: 6px;
-  }
-  button.primary {
-    flex: 1;
-    padding: 13px 18px;
-    font-family: "Orbitron", "Oswald", sans-serif;
-    font-weight: 500;
-    font-size: 0.92rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--neon);
-    background: linear-gradient(180deg, #1a1428 0%, #120e1e 100%);
-    border: 1px solid rgba(62, 242, 200, 0.5);
-    border-radius: 10px;
-    box-shadow:
-      0 0 14px rgba(62, 242, 200, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    cursor: pointer;
-    text-shadow: 0 0 8px rgba(62, 242, 200, 0.5);
-    transition: transform 0.08s ease, box-shadow 0.12s ease, filter 0.12s ease;
-  }
-  button.primary:hover:not(:disabled) {
-    filter: brightness(1.18);
-    box-shadow:
-      0 0 22px rgba(62, 242, 200, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  }
-  button.primary:active:not(:disabled) {
-    transform: translateY(2px);
-    box-shadow: 0 0 10px rgba(62, 242, 200, 0.15);
-  }
-  button.primary:disabled {
-    color: var(--muted);
-    border-color: rgba(138, 130, 158, 0.35);
-    text-shadow: none;
-    box-shadow: none;
-    cursor: not-allowed;
-  }
-  select {
-    padding: 11px 12px;
-    font-family: "Oswald", sans-serif;
-    font-size: 0.9rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--cream);
-    background: #100c1a;
-    border: 1px solid rgba(62, 242, 200, 0.28);
-    border-radius: 8px;
-    outline: none;
-    max-width: 100%;
-  }
-  select:focus {
-    border-color: var(--neon);
-    box-shadow: 0 0 0 2px rgba(62, 242, 200, 0.3);
-  }
-  .volume {
-    margin-top: 14px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    background: #100c1a;
-    border: 1px solid rgba(62, 242, 200, 0.2);
-    border-radius: 10px;
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
-  }
-  .mute-btn {
-    flex-shrink: 0;
-    width: 44px;
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: #171226;
-    border: 1px solid rgba(62, 242, 200, 0.35);
-    border-radius: 8px;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    cursor: pointer;
-    color: var(--neon);
-    transition: transform 0.08s ease, box-shadow 0.12s ease, filter 0.12s ease;
-    padding: 0;
-  }
-  .mute-btn:hover { filter: brightness(1.2); }
-  .mute-btn:active { transform: translateY(1px); }
-  .mute-btn svg { width: 20px; height: 20px; display: block; }
-  .mute-btn .icon-waves { transition: opacity 0.12s ease; }
-  .mute-btn .icon-slash { opacity: 0; transition: opacity 0.12s ease; }
-  .mute-btn.muted { color: var(--pink); border-color: rgba(255, 95, 162, 0.45); }
-  .mute-btn.muted .icon-waves { opacity: 0; }
-  .mute-btn.muted .icon-slash { opacity: 1; }
-  .volume input[type="range"] {
-    flex: 1;
-    min-width: 0;
-    -webkit-appearance: none;
-    appearance: none;
-    height: 6px;
-    border-radius: 4px;
-    background: linear-gradient(90deg, var(--neon) var(--fill, 80%), #241d33 var(--fill, 80%));
-    border: 1px solid rgba(62, 242, 200, 0.25);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
-    outline: none;
-    cursor: pointer;
-  }
-  .volume input[type="range"]:focus-visible {
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(62, 242, 200, 0.4);
-  }
-  .volume input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #d6fff2, var(--neon) 65%, #14624e);
-    border: 1px solid var(--ink);
-    box-shadow: 0 0 10px rgba(62, 242, 200, 0.6);
-  }
-  .volume input[type="range"]::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #d6fff2, var(--neon) 65%, #14624e);
-    border: 1px solid var(--ink);
-    box-shadow: 0 0 10px rgba(62, 242, 200, 0.6);
-  }
-  .volume input[type="range"]::-moz-range-track {
-    height: 6px;
-    border-radius: 4px;
-    background: transparent;
-  }
-  .vol-value {
-    flex-shrink: 0;
-    min-width: 52px;
-    text-align: right;
-    font-family: "Share Tech Mono", ui-monospace, monospace;
-    font-size: 0.8rem;
-    color: var(--neon);
-    text-shadow: 0 0 8px rgba(62, 242, 200, 0.5);
-    font-variant-numeric: tabular-nums;
-  }
-  .display {
-    min-width: 0;
-    margin-top: 0;
-    display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    padding: 18px 20px;
-    background: #0e0b18;
-    border: 1px solid rgba(62, 242, 200, 0.22);
-    border-radius: 12px;
-    box-shadow: inset 0 2px 16px rgba(0, 0, 0, 0.7);
+    gap: 6px;
+    min-height: 148px;
+    padding: 10px 14px 9px;
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 3px),
+      var(--glass);
+    border: 2px solid var(--ink);
+    border-radius: 5px;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      inset 0 3px 14px rgba(0, 0, 0, 0.95);
   }
-  .bpm { display: flex; flex-direction: column; gap: 8px; min-width: 0; flex: 1; }
-  .bpm .label {
-    font-family: "Orbitron", "Oswald", sans-serif;
-    font-size: 0.72rem;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.32em;
-    color: var(--pink);
-    text-shadow: 0 0 10px rgba(255, 95, 162, 0.5);
+  .readout-bottom {
+    display: flex;
+    justify-content: flex-end;
   }
-  .bpm .value {
+  .readout .label, .beat-count {
     font-family: "Share Tech Mono", ui-monospace, monospace;
-    font-size: 4.1rem;
-    color: var(--neon);
-    line-height: 1;
-    letter-spacing: 0.02em;
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 61, 46, 0.55);
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 0 24px rgba(62, 242, 200, 0.45);
   }
-  .bpm .value small {
-    font-size: 0.95rem;
-    color: #7f789a;
-    margin-left: 10px;
-    letter-spacing: 0.24em;
+  .readout .value {
+    white-space: nowrap;
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 3.8rem;
+    color: var(--led);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 12px var(--led-glow), 0 0 2px rgba(255, 180, 160, 0.6);
+  }
+  .readout .value small {
+    font-size: 0.85rem;
+    margin-left: 8px;
+    letter-spacing: 0.18em;
+    color: rgba(255, 61, 46, 0.7);
     text-shadow: none;
+  }
+  .beat-count { white-space: nowrap; }
+  #bpmValue, #tempoInput {
+    box-sizing: border-box;
+    height: 1.15em;
+    line-height: 1.15em;
+    vertical-align: bottom;
+    border-bottom: 2px solid transparent;
+  }
+  #bpmValue { display: inline-block; }
+  #tempoInput {
+    display: none;
+    width: 3.3ch;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    text-shadow: inherit;
+    text-align: right;
+    background: transparent;
+    border: 0;
+    border-bottom: 2px dashed rgba(255, 61, 46, 0.35);
+    caret-color: var(--led);
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  #tempoInput::-webkit-outer-spin-button,
+  #tempoInput::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  #tempoInput:hover { border-bottom-color: rgba(255, 61, 46, 0.6); }
+  #tempoInput:focus { border-bottom: 2px solid var(--led); }
+  body[data-mode="transmit"] #bpmValue { display: none; }
+  body[data-mode="transmit"] #tempoInput { display: inline-block; }
+  .downbeat {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    padding: 0 4px;
   }
   .beat-lamp {
-    position: relative;
-    width: 104px;
-    height: 76px;
-    flex-shrink: 0;
-    background: linear-gradient(180deg, #1c1630 0%, #120e1e 100%);
-    border: 1px solid rgba(62, 242, 200, 0.25);
-    border-radius: 10px;
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.65);
-    overflow: hidden;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #6a1a14, #2c0806 70%);
+    border: 3px solid;
+    border-color: #d0d0d0 #707070 #474747 #9c9c9c;
+    box-shadow: 0 0 0 1px #000, inset 0 1px 3px rgba(0, 0, 0, 0.6);
     transition: background 0.06s ease, box-shadow 0.06s ease;
   }
   .beat-lamp.hit {
-    background: linear-gradient(180deg, #241a3a 0%, #171226 100%);
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.65), 0 0 16px rgba(62, 242, 200, 0.35);
+    background: radial-gradient(circle at 40% 35%, #ffe0d8, #ff3d2e 45%, #a3140b);
+    box-shadow: 0 0 0 1px #000, 0 0 14px 4px var(--led-glow);
   }
-  .vu-label {
-    position: absolute;
-    top: 6px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: "Share Tech Mono", ui-monospace, monospace;
-    font-size: 0.5rem;
-    letter-spacing: 0.26em;
-    color: #6f688c;
+
+  /* ---------- Knob ---------- */
+  .vol-sec { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .scale {
+    position: relative;
+    width: 136px;
+    height: 116px;
+    flex-shrink: 0;
   }
-  .vu-arc {
+  .scale .n {
     position: absolute;
     left: 50%;
-    bottom: 12px;
-    width: 54px;
-    height: 54px;
-    transform: translateX(-50%) translateY(50%);
-    border: 2px solid transparent;
-    border-top-color: rgba(62, 242, 200, 0.5);
+    top: 58px;
+    width: 22px;
+    height: 12px;
+    margin: -6px 0 0 -11px;
+    font-weight: 600;
+    font-size: 0.56rem;
+    line-height: 12px;
+    text-align: center;
+    color: var(--legend);
+    transform:
+      rotate(calc(-135deg + var(--i) * var(--step, 27deg)))
+      translateY(-53px)
+      rotate(calc(135deg - var(--i) * var(--step, 27deg)));
+  }
+  .knob {
+    position: absolute;
+    left: 50%;
+    top: 58px;
+    width: 70px;
+    height: 70px;
+    margin: -35px 0 0 -35px;
     border-radius: 50%;
+    box-shadow: 0 0 0 2px #000, 0 6px 10px rgba(0, 0, 0, 0.65);
+    cursor: grab;
+    outline: none;
+    touch-action: none;
   }
-  .vu-tick {
+  .knob:active { cursor: grabbing; }
+  .knob:focus-visible { box-shadow: 0 0 0 2px #000, 0 0 0 4px var(--legend), 0 6px 10px rgba(0, 0, 0, 0.65); }
+  .knob-indicator {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: repeating-conic-gradient(from -9deg, #2a2a2a 0deg 4deg, #0b0b0b 9deg 13deg, #1c1c1c 18deg);
+    transform: rotate(var(--angle, -135deg));
+  }
+  .knob-indicator::before {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, #262626, #111 75%);
+    box-shadow: 0 0 0 1px #000, inset 0 1px 1px rgba(255, 255, 255, 0.12);
+  }
+  .knob-indicator::after {
+    content: "";
     position: absolute;
     left: 50%;
-    bottom: 12px;
-    width: 2.5px;
-    height: 10px;
-    margin-left: -1.25px;
-    background: rgba(62, 242, 200, 0.55);
-    transform-origin: 50% 100%;
-    transform: rotate(var(--a)) translateY(-24px);
-  }
-  .vu-needle {
-    position: absolute;
-    left: 50%;
-    bottom: 12px;
+    top: 10px;
     width: 3px;
-    height: 44px;
+    height: 18px;
     margin-left: -1.5px;
-    background: linear-gradient(180deg, var(--pink) 0%, #7d2a4e 100%);
-    border-radius: 2px;
-    box-shadow: 0 0 8px rgba(255, 95, 162, 0.6);
-    transform-origin: 50% 100%;
-    transform: rotate(-42deg);
-    transition: transform 0.16s cubic-bezier(0.3, 1.5, 0.45, 1);
+    background: #f3eee2;
+    border-radius: 1px;
   }
-  .beat-lamp.hit .vu-needle { transform: rotate(34deg); }
-  .vu-pivot {
+  .knob::after {
+    content: "";
     position: absolute;
-    left: 50%;
-    bottom: 6px;
-    width: 13px;
-    height: 13px;
-    transform: translateX(-50%);
+    inset: 9px;
     border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #ffd9ec, var(--pink) 60%, #7d2a4e);
-    border: 1px solid var(--ink);
-    box-shadow: 0 0 8px rgba(255, 95, 162, 0.5);
-    z-index: 2;
+    background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.2), transparent 55%);
+    pointer-events: none;
   }
-  @media (max-width: 420px) {
-    .display { flex-direction: column; text-align: center; gap: 14px; }
-    .bpm { align-items: center; }
-    .bpm .value { font-size: 3.1rem; }
+  .vol-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+  }
+  .vol-value {
+    min-width: 54px;
+    padding: 4px 6px;
+    font-family: "Share Tech Mono", ui-monospace, monospace;
+    font-size: 0.8rem;
+    text-align: center;
+    color: var(--led);
+    text-shadow: 0 0 8px var(--led-glow);
+    background: var(--glass);
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 2px 6px rgba(0, 0, 0, 0.9);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Square key caps ---------- */
+  .key-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    padding: 4px 2px 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .key-btn:focus { outline: none; }
+  .key-btn:focus-visible .cap { outline: 2px solid var(--legend); outline-offset: 5px; }
+  .cap {
+    --c-hi: #f4ecd4; --c: #e3d8b8; --c-lo: #c4b78f;
+    display: block;
+    width: 48px;
+    height: 42px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, var(--c-hi) 0%, var(--c) 40%, var(--c-lo) 100%);
+    border: 1px solid rgba(0, 0, 0, 0.75);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -4px 0 rgba(0, 0, 0, 0.18),
+      0 0 0 3px #151515,
+      0 4px 6px 3px rgba(0, 0, 0, 0.45);
+    transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.06s ease;
+  }
+  .cap.blue   { --c-hi: #4f7fc0; --c: #2b5c9e; --c-lo: #1d4176; }
+  .cap.red    { --c-hi: #ef5a46; --c: #d2392a; --c-lo: #9d2318; }
+  .cap.yellow { --c-hi: #f6dc6a; --c: #e7c443; --c-lo: #b9952a; }
+  .cap.green  { --c-hi: #4fae5c; --c: #2f8a3e; --c-lo: #1f622b; }
+  .cap.grey   { --c-hi: #d7d5cf; --c: #b9b6ae; --c-lo: #8f8c84; }
+  .cap.black  { --c-hi: #3a3a3a; --c: #1d1d1d; --c-lo: #0b0b0b; }
+  .key-btn:active .cap,
+  .key-btn.active .cap,
+  .key-btn.muted .cap {
+    transform: translateY(1px) scale(0.985);
+    filter: brightness(0.9);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.2),
+      inset 0 2px 5px rgba(0, 0, 0, 0.25),
+      0 0 0 3px #151515,
+      0 2px 3px 3px rgba(0, 0, 0, 0.45);
+  }
+  .key-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #5c1610, #250604 70%);
+    box-shadow: 0 0 0 1.5px #0a0a0a;
+    transition: background 0.1s ease, box-shadow 0.1s ease;
+  }
+  .key-btn.active .key-led,
+  .key-btn.muted .key-led {
+    background: radial-gradient(circle at 40% 35%, #ffd8cf, #ff3d2e 50%, #a3140b);
+    box-shadow: 0 0 0 1.5px #0a0a0a, 0 0 8px 2px var(--led-glow);
+  }
+
+  .mode-sec {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mode-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  /* ---------- I/O section ---------- */
+  .io-sec { display: flex; flex-direction: column; gap: 12px; }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    font-weight: 600;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--legend);
+  }
+  #statusText { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .status .led {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: radial-gradient(circle at 40% 35%, #444, #1a1a1a 70%);
+    border: 2px solid;
+    border-color: #c9c9c9 #6a6a6a #444 #969696;
+    box-shadow: 0 0 0 1px #000;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .status.on .led {
+    background: radial-gradient(circle at 40% 35%, #e0ffe0, #4ade80 50%, #1f7a3d);
+    box-shadow: 0 0 0 1px #000, 0 0 10px rgba(74, 222, 128, 0.7);
+  }
+  .status.tx .led {
+    background: radial-gradient(circle at 40% 35%, #ffe9b0, #f7a52e 50%, #8a4d10);
+    box-shadow: 0 0 0 1px #000, 0 0 10px rgba(247, 165, 46, 0.7);
+  }
+  .status.err .led {
+    background: radial-gradient(circle at 40% 35%, #ffd0c4, var(--led) 50%, #8d150c);
+    box-shadow: 0 0 0 1px #000, 0 0 10px var(--led-glow);
+  }
+  .row { display: flex; gap: 10px; align-items: center; }
+  .device-row select {
+    flex: 1;
+    min-width: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 8px 30px 8px 10px;
+    font-family: "Archivo Narrow", sans-serif;
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: var(--legend);
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0h10L5 6z' fill='%23ebe6da'/%3E%3C/svg%3E") no-repeat right 10px center,
+      #1a1919;
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 2px 6px rgba(0, 0, 0, 0.8);
+    outline: none;
+    max-width: 100%;
+  }
+  .device-row select:focus { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 0 3px rgba(235, 230, 218, 0.35); }
+  button.primary {
+    flex: 1;
+    min-height: 44px;
+    padding: 10px 16px;
+    font-family: "Archivo Narrow", sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #2a2418;
+    background: linear-gradient(180deg, #f4ecd4 0%, #e3d8b8 40%, #c4b78f 100%);
+    border: 1px solid rgba(0, 0, 0, 0.75);
+    border-radius: 3px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -4px 0 rgba(0, 0, 0, 0.18),
+      0 0 0 3px #151515,
+      0 4px 6px 3px rgba(0, 0, 0, 0.45);
+    margin: 3px;
+    cursor: pointer;
+    transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.06s ease;
+  }
+  button.primary:focus { outline: none; }
+  button.primary:focus-visible { outline: 2px solid var(--legend); outline-offset: 6px; }
+  button.primary:active:not(:disabled) {
+    transform: translateY(1px);
+    filter: brightness(0.92);
+    box-shadow:
+      inset 0 2px 5px rgba(0, 0, 0, 0.25),
+      0 0 0 3px #151515,
+      0 2px 3px 3px rgba(0, 0, 0, 0.45);
+  }
+  button.primary:disabled {
+    cursor: not-allowed;
+    filter: saturate(0.3) brightness(0.7);
+  }
+
+  /* ---------- Wordmark ---------- */
+  .brand {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 14px;
+    padding: 0 6px;
+  }
+  .footer {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--legend-dim);
+    line-height: 1.5;
+    padding-bottom: 4px;
+  }
+  .wordmark {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .wordmark .wm-midi {
+    font-family: "Archivo Black", "Arial Black", sans-serif;
+    font-size: 1.7rem;
+    letter-spacing: -0.04em;
+    text-transform: lowercase;
+    color: var(--legend);
+  }
+  .wordmark .wm-tick {
+    font-family: "Audiowide", "Archivo Black", sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.06em;
+    color: transparent;
+    -webkit-text-stroke: 1.3px var(--legend);
+  }
+
+  @media (max-width: 460px) {
+    .panel { padding: 28px 14px 14px; }
+    .sec-row { grid-template-columns: 1fr; }
+    .sec-row > .sec + .sec { margin-top: 0; }
+    .readout .value { font-size: 2.6rem; }
+    .display { flex-direction: column; align-items: stretch; }
+    .side { flex-direction: row; justify-content: space-around; align-items: center; }
+    .brand { flex-direction: column-reverse; align-items: center; text-align: center; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .beat-lamp .vu-needle { transition: none; }
     * { transition: none !important; }
   }
 </style>
 </head>
-<body>
+<body data-mode="receive">
   <div class="card">
-    <div class="display">
-      <div class="bpm">
-        <span class="label">Tempo</span>
-        <span class="value"><span id="bpmValue">--</span><small>BPM</small></span>
+    <div class="panel">
+      <span class="screw tl"></span>
+      <span class="screw tr"></span>
+      <span class="screw bl"></span>
+      <span class="screw br"></span>
+
+      <section class="sec has-vlabel">
+        <span class="sec-label">Tempo</span>
+        <div class="display">
+          <div class="readout">
+            <span class="label">Clock <span class="mode-only-rx">In</span><span class="mode-only-tx">Out</span></span>
+            <span class="value"><span id="bpmValue">--</span><input type="number" id="tempoInput" min="20" max="300" step="1" value="120" aria-label="Transmit tempo in BPM"><small>BPM</small></span>
+            <div class="readout-bottom"><span class="beat-count" id="beatCount">0 beats</span></div>
+          </div>
+          <div class="side">
+            <div class="downbeat">
+              <span class="beat-lamp" id="beatLamp" aria-hidden="true"></span>
+              <span class="legend">Downbeat</span>
+            </div>
+            <div class="tempo-row disabled" id="tempoRow">
+              <div class="scale">
+                <span class="n" style="--i:0">20</span>
+                <span class="n" style="--i:1">60</span>
+                <span class="n" style="--i:2">100</span>
+                <span class="n" style="--i:3">140</span>
+                <span class="n" style="--i:4">180</span>
+                <span class="n" style="--i:5">220</span>
+                <span class="n" style="--i:6">260</span>
+                <span class="n" style="--i:7">300</span>
+                <div class="knob" id="tempoKnob" role="slider" tabindex="-1" aria-disabled="true" aria-label="Transmit tempo" aria-valuemin="20" aria-valuemax="300" aria-valuenow="120">
+                  <span class="knob-indicator"></span>
+                </div>
+              </div>
+              <span class="legend">Tempo</span>
+            </div>
+          </div>
+        </div>
+        <span class="vlabel" aria-hidden="true">CLOCK</span>
+      </section>
+
+      <div class="sec-row">
+        <section class="sec vol-sec">
+          <span class="sec-label">Volume</span>
+          <div class="scale">
+            <span class="n" style="--i:0">0</span>
+            <span class="n" style="--i:1">1</span>
+            <span class="n" style="--i:2">2</span>
+            <span class="n" style="--i:3">3</span>
+            <span class="n" style="--i:4">4</span>
+            <span class="n" style="--i:5">5</span>
+            <span class="n" style="--i:6">6</span>
+            <span class="n" style="--i:7">7</span>
+            <span class="n" style="--i:8">8</span>
+            <span class="n" style="--i:9">9</span>
+            <span class="n" style="--i:10">10</span>
+            <div class="knob" id="volumeKnob" role="slider" tabindex="0" aria-label="Volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80">
+              <span class="knob-indicator"></span>
+            </div>
+          </div>
+          <div class="vol-controls">
+            <button id="muteBtn" class="key-btn" aria-pressed="false" aria-label="Mute sound" title="Mute / unmute">
+              <span class="key-led"></span>
+              <span class="cap grey"></span>
+              <span class="legend">Mute</span>
+            </button>
+            <span class="vol-value" id="volValue">80%</span>
+          </div>
+        </section>
+
+        <section class="sec mode-sec has-vlabel">
+          <span class="sec-label">Mode</span>
+          <div class="mode-toggle" role="group" aria-label="MIDI mode">
+            <button type="button" id="modeReceiveBtn" class="key-btn mode-btn active" aria-pressed="true">
+              <span class="key-led"></span>
+              <span class="cap blue"></span>
+              <span class="legend">Receive</span>
+            </button>
+            <button type="button" id="modeTransmitBtn" class="key-btn mode-btn" aria-pressed="false">
+              <span class="key-led"></span>
+              <span class="cap red"></span>
+              <span class="legend">Transmit</span>
+            </button>
+          </div>
+          <span class="vlabel" aria-hidden="true">MIDI</span>
+        </section>
       </div>
-      <div class="beat-lamp" id="beatLamp" aria-hidden="true">
-        <span class="vu-label">BEAT</span>
-        <span class="vu-arc"></span>
-        <span class="vu-tick" style="--a:-40deg"></span>
-        <span class="vu-tick" style="--a:-20deg"></span>
-        <span class="vu-tick" style="--a:0deg"></span>
-        <span class="vu-tick" style="--a:20deg"></span>
-        <span class="vu-tick" style="--a:40deg"></span>
-        <span class="vu-needle"></span>
-        <span class="vu-pivot"></span>
+
+      <section class="sec io-sec">
+        <span class="sec-label">MIDI <span class="mode-only-rx">In</span><span class="mode-only-tx">Out</span></span>
+        <div class="status" id="status">
+          <span class="led" id="statusLed"></span>
+          <span id="statusText">Standby</span>
+        </div>
+        <div class="row device-row" id="deviceRow" style="display: none;">
+          <select id="deviceSelect" aria-label="MIDI input device"></select>
+        </div>
+        <div class="row">
+          <button id="enableBtn" class="primary">Enable MIDI</button>
+        </div>
+      </section>
+
+      <div class="brand">
+        <p class="footer">MIDI Clock Receiver<br>&amp; Transmitter · 24 PPQN</p>
+        <h1 class="wordmark"><span class="wm-midi">midi</span><span class="wm-tick">TICK</span></h1>
       </div>
     </div>
-
-    <div class="volume">
-      <button id="muteBtn" class="mute-btn" aria-pressed="false" aria-label="Mute sound" title="Mute / unmute">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M11 5 6 9H2v6h4l5 4V5z" fill="currentColor" stroke="none"></path>
-          <g class="icon-waves">
-            <path d="M15.5 8.5a5 5 0 0 1 0 7"></path>
-            <path d="M18.5 5.5a9 9 0 0 1 0 13"></path>
-          </g>
-          <g class="icon-slash">
-            <line x1="16" y1="9" x2="22" y2="15"></line>
-            <line x1="22" y1="9" x2="16" y2="15"></line>
-          </g>
-        </svg>
-      </button>
-      <input type="range" id="volumeSlider" min="0" max="100" step="1" value="80" aria-label="Volume">
-      <span class="vol-value" id="volValue">80%</span>
-    </div>
-
-    <div class="controls">
-      <div class="mode-toggle" role="group" aria-label="MIDI mode">
-        <button type="button" id="modeReceiveBtn" class="mode-btn active" aria-pressed="true">Receive</button>
-        <button type="button" id="modeTransmitBtn" class="mode-btn" aria-pressed="false">Transmit</button>
-      </div>
-      <div class="tempo-row" id="tempoRow" style="display: none;">
-        <label for="tempoInput">Tempo</label>
-        <input type="number" id="tempoInput" min="20" max="300" step="1" value="120">
-        <span class="tempo-unit">BPM</span>
-      </div>
-      <div class="row">
-        <button id="enableBtn" class="primary">Enable MIDI</button>
-      </div>
-      <div class="row device-row" id="deviceRow" style="display: none;">
-        <select id="deviceSelect" aria-label="MIDI input device" style="flex:1;"></select>
-      </div>
-    </div>
-
   </div>
 
 <script>
@@ -487,9 +719,13 @@
   const modeTransmitBtn = document.getElementById("modeTransmitBtn");
   const tempoRow = document.getElementById("tempoRow");
   const tempoInput = document.getElementById("tempoInput");
+  const tempoKnob = document.getElementById("tempoKnob");
   const muteBtn = document.getElementById("muteBtn");
-  const volumeSlider = document.getElementById("volumeSlider");
+  const volumeKnob = document.getElementById("volumeKnob");
   const volValue = document.getElementById("volValue");
+  const statusEl = document.getElementById("status");
+  const statusText = document.getElementById("statusText");
+  const beatCountEl = document.getElementById("beatCount");
 
   let audioCtx = null;
   let masterGain = null;
@@ -512,6 +748,7 @@
   let transmitTimer = null;
   let transmitTickCount = 0;
   let ticks = 0;
+  let beats = 0;
   let lastBeatTime = null;
   let lastTickTime = null;
   let intervalSamples = [];
@@ -544,16 +781,56 @@
     } catch (e) { /* storage unavailable */ }
   }
 
+  function setStatus(kind, text) {
+    statusEl.classList.remove("on", "tx", "err");
+    if (kind) statusEl.classList.add(kind);
+    statusText.textContent = text;
+  }
+
   function updateVolumeUI() {
     const pct = Math.round(volume * 100);
-    volumeSlider.value = String(pct);
-    volumeSlider.style.setProperty("--fill", pct + "%");
+    const angle = -135 + (pct / 100) * 270;
+    volumeKnob.style.setProperty("--angle", angle + "deg");
+    volumeKnob.setAttribute("aria-valuenow", String(pct));
     volValue.textContent = muted ? "MUTED" : pct + "%";
     muteBtn.classList.toggle("muted", muted);
     muteBtn.setAttribute("aria-pressed", muted ? "true" : "false");
     muteBtn.setAttribute("aria-label", muted ? "Unmute sound" : "Mute sound");
     applyVolume();
   }
+
+  function setVolume(v) {
+    volume = Math.min(1, Math.max(0, v));
+    if (volume > 0 && muted) muted = false;
+    updateVolumeUI();
+    saveVolumePrefs();
+  }
+
+  // Rotary knob: vertical drag, wheel, and arrow keys.
+  let knobDrag = null;
+  volumeKnob.addEventListener("pointerdown", (e) => {
+    knobDrag = { startY: e.clientY, startVol: volume };
+    volumeKnob.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  volumeKnob.addEventListener("pointermove", (e) => {
+    if (!knobDrag) return;
+    const delta = (knobDrag.startY - e.clientY) * 0.008;
+    setVolume(knobDrag.startVol + delta);
+  });
+  volumeKnob.addEventListener("pointerup", () => { knobDrag = null; });
+  volumeKnob.addEventListener("pointercancel", () => { knobDrag = null; });
+  volumeKnob.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    setVolume(volume + (e.deltaY < 0 ? 0.05 : -0.05));
+  }, { passive: false });
+  volumeKnob.addEventListener("keydown", (e) => {
+    const step = e.shiftKey ? 0.1 : 0.05;
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") { setVolume(volume + step); e.preventDefault(); }
+    else if (e.key === "ArrowDown" || e.key === "ArrowLeft") { setVolume(volume - step); e.preventDefault(); }
+    else if (e.key === "Home") { setVolume(0); e.preventDefault(); }
+    else if (e.key === "End") { setVolume(1); e.preventDefault(); }
+  });
 
   function playTick() {
     const ctx = ensureAudio();
@@ -614,6 +891,9 @@
       ticks = 0;
     }
 
+    beats++;
+    beatCountEl.textContent = beats + " beat" + (beats === 1 ? "" : "s");
+
     playTick();
     flashLamp();
   }
@@ -636,6 +916,7 @@
       } catch (e) {
         stopTransmit();
         enableBtn.textContent = "Output lost — retry";
+        setStatus("err", "Output lost");
         return;
       }
       transmitTickCount++;
@@ -660,11 +941,15 @@
   function setMode(next) {
     if (next === mode) return;
     mode = next;
+    document.body.dataset.mode = mode;
     modeReceiveBtn.classList.toggle("active", mode === "receive");
     modeReceiveBtn.setAttribute("aria-pressed", mode === "receive" ? "true" : "false");
     modeTransmitBtn.classList.toggle("active", mode === "transmit");
     modeTransmitBtn.setAttribute("aria-pressed", mode === "transmit" ? "true" : "false");
-    tempoRow.style.display = mode === "transmit" ? "flex" : "none";
+    const tx = mode === "transmit";
+    tempoRow.classList.toggle("disabled", !tx);
+    tempoKnob.tabIndex = tx ? 0 : -1;
+    tempoKnob.setAttribute("aria-disabled", tx ? "false" : "true");
     stopTransmit();
     if (selectedInput) {
       selectedInput.onmidimessage = null;
@@ -680,6 +965,7 @@
       lastTickTime = null;
     }
     if (midiAccess) populateDevices();
+    else setStatus("", "Standby");
   }
 
   // ---------- MIDI ----------
@@ -704,6 +990,7 @@
     if (devices.length === 0) {
       deviceRow.style.display = "none";
       enableBtn.textContent = isReceive ? "No MIDI inputs — retry" : "No MIDI outputs — retry";
+      setStatus("err", isReceive ? "No MIDI inputs" : "No MIDI outputs");
       if (!isReceive) stopTransmit();
       return;
     }
@@ -734,6 +1021,7 @@
       if (selectedInput) {
         selectedInput.onmidimessage = handleMessage;
         enableBtn.textContent = "Re-scan devices";
+        setStatus("on", "Receiving on " + (selectedInput.name || "MIDI input"));
       }
     } else {
       stopTransmit();
@@ -742,6 +1030,7 @@
       selectedOutput = output || null;
       if (selectedOutput) {
         enableBtn.textContent = "Re-scan devices";
+        setStatus("tx", "Transmitting on " + (selectedOutput.name || "MIDI output"));
         startTransmit();
       }
     }
@@ -751,9 +1040,11 @@
   async function enable() {
     enableBtn.disabled = true;
     enableBtn.textContent = "Requesting…";
+    setStatus("tx", "Requesting MIDI access…");
 
     if (!navigator.requestMIDIAccess) {
       enableBtn.textContent = "MIDI not supported";
+      setStatus("err", "Web MIDI unavailable");
       enableBtn.disabled = false;
       return;
     }
@@ -762,6 +1053,7 @@
       midiAccess = await navigator.requestMIDIAccess();
     } catch (err) {
       enableBtn.textContent = "MIDI denied — retry";
+      setStatus("err", "MIDI access denied");
       enableBtn.disabled = false;
       return;
     }
@@ -790,12 +1082,6 @@
     };
   }
 
-  volumeSlider.addEventListener("input", () => {
-    volume = parseInt(volumeSlider.value, 10) / 100;
-    if (volume > 0 && muted) muted = false;
-    updateVolumeUI();
-    saveVolumePrefs();
-  });
   muteBtn.addEventListener("click", () => {
     muted = !muted;
     updateVolumeUI();
@@ -817,6 +1103,56 @@
     tempoInput.value = String(transmitBpm);
   });
   try { tempoInput.value = String(transmitBpm); } catch (e) { /* ignore */ }
+  tempoInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") tempoInput.blur();
+  });
+
+  // Tempo knob (transmit mode). Updates the readout live and commits the new
+  // tempo through the input's "input" handler after a short pause.
+  const TEMPO_MIN = 20, TEMPO_MAX = 300;
+  let tempoCommitTimer = null;
+  let tempoDrag = null;
+  function showTempoKnob(bpm) {
+    const angle = -135 + ((bpm - TEMPO_MIN) / (TEMPO_MAX - TEMPO_MIN)) * 270;
+    tempoKnob.style.setProperty("--angle", angle + "deg");
+    tempoKnob.setAttribute("aria-valuenow", String(Math.round(bpm)));
+  }
+  function setTempoFromKnob(bpm) {
+    if (mode !== "transmit") return;
+    bpm = Math.round(Math.min(TEMPO_MAX, Math.max(TEMPO_MIN, bpm)));
+    if (String(bpm) === tempoInput.value) return;
+    tempoInput.value = String(bpm);
+    showTempoKnob(bpm);
+    clearTimeout(tempoCommitTimer);
+    tempoCommitTimer = setTimeout(() => tempoInput.dispatchEvent(new Event("input")), 200);
+  }
+  const currentTempo = () => parseFloat(tempoInput.value) || transmitBpm;
+  tempoKnob.addEventListener("pointerdown", (e) => {
+    if (mode !== "transmit") return;
+    tempoDrag = { startY: e.clientY, startBpm: currentTempo() };
+    tempoKnob.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  tempoKnob.addEventListener("pointermove", (e) => {
+    if (!tempoDrag) return;
+    setTempoFromKnob(tempoDrag.startBpm + (tempoDrag.startY - e.clientY) * 0.6);
+  });
+  tempoKnob.addEventListener("pointerup", () => { tempoDrag = null; });
+  tempoKnob.addEventListener("pointercancel", () => { tempoDrag = null; });
+  tempoKnob.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const step = e.shiftKey ? 5 : 1;
+    setTempoFromKnob(currentTempo() + (e.deltaY < 0 ? step : -step));
+  }, { passive: false });
+  tempoKnob.addEventListener("keydown", (e) => {
+    const step = e.shiftKey || e.key === "PageUp" || e.key === "PageDown" ? 10 : 1;
+    if (["ArrowUp", "ArrowRight", "PageUp"].includes(e.key)) { setTempoFromKnob(currentTempo() + step); e.preventDefault(); }
+    else if (["ArrowDown", "ArrowLeft", "PageDown"].includes(e.key)) { setTempoFromKnob(currentTempo() - step); e.preventDefault(); }
+    else if (e.key === "Home") { setTempoFromKnob(TEMPO_MIN); e.preventDefault(); }
+    else if (e.key === "End") { setTempoFromKnob(TEMPO_MAX); e.preventDefault(); }
+  });
+  tempoInput.addEventListener("input", () => showTempoKnob(transmitBpm));
+  showTempoKnob(transmitBpm);
 
   enableBtn.addEventListener("click", enable);
   deviceSelect.addEventListener("change", bindSelectedDevice);
